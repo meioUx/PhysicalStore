@@ -1,66 +1,100 @@
+// index.js
+const winston = require('winston');
+const stores = require('./stores'); 
 
-async function getDataByCEP(cep) {
-    const url = `https://viacep.com.br/ws/${cep}/json/`;
+//  Winston
+const logger = winston.createLogger({
+    level: 'info',
+    format: winston.format.json(),
+    transports: [
+        new winston.transports.File({ filename: 'error.log', level: 'error' }),
+        new winston.transports.File({ filename: 'combined.log' })
+    ]
+});
 
-    const res = await fetch(url)
-    const data = await res.json()
-    console.log(data)
-    return data
-
+if (process.env.NODE_ENV !== 'production') {
+    logger.add(new winston.transports.Console({
+        format: winston.format.simple(),
+    }));
 }
 
+// requisições
+async function fetchWithErrorHandling(url) {
+    try {
+        const res = await fetch(url);
+        if (!res.ok) {
+            throw new Error(`Erro HTTP: ${res.status}`);
+        }
+        return await res.json();
+    } catch (error) {
+        logger.error(`Erro ao buscar dados da API: ${error.message}`);
+        throw error;
+    }
+}
+
+// CEP com ViaCEP
+async function getDataByCEP(cep) {
+    const url = `https://viacep.com.br/ws/${cep}/json/`;
+    const data = await fetchWithErrorHandling(url);
+    logger.info(`Dados obtidos do CEP: ${cep}`, data);
+    return data;
+}
+
+// Calculo de distância
 function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371;
+    const R = 6371; // Raio da Terra em km
     const dLat = (lat2 - lat1) * (Math.PI / 180);
     const dLon = (lon2 - lon1) * (Math.PI / 180);
-    const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
         Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
         Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c;
-    return distance;
+    return R * c;
 }
 
-const stores = [
-    { name: "Loja A", lat: -23.550520, lng: -46.633308 },
-    { name: "Loja B", lat: -22.908333, lng: -43.196388 },
-    { name: "Loja C", lat: -25.4297, lng: -49.2719 },
-];
+// coordenadas 
+async function searchCoords(city, state) {
+    const url = `https://nominatim.openstreetmap.org/search?city=${city}&state=${state}&country=Brazil&format=json`;
+    const data = await fetchWithErrorHandling(url);
+    logger.info(`Coordenadas encontradas para ${city}, ${state}: ${data[0].lat}, ${data[0].lon}`);
+    return {
+        lat: data[0].lat,
+        lng: data[0].lon
+    };
+}
 
+// Localizar as lojas perto
 async function nearbyStores(cep) {
     try {
         const dataCEP = await getDataByCEP(cep);
         const { logradouro, localidade, uf, cep: findedCEP } = dataCEP;
         const { lat, lng } = await searchCoords(localidade, uf);
+        
+        logger.info(`CEP: ${findedCEP} | Local: ${logradouro}, ${localidade} - ${uf}`);
+        logger.info(`Coordenadas do CEP: Latitude ${lat}, Longitude ${lng}`);
 
-        console.log(`CEP: ${findedCEP} | Local: ${logradouro}, ${localidade} - ${uf}`);
-        console.log(`Coordenadas do CEP: Latitude ${lat}, Longitude ${lng}`);
+        const nearby = stores
+            .map(store => ({
+                ...store,
+                distance: calculateDistance(lat, lng, store.lat, store.lng)
+            }))
+            .filter(store => store.distance <= 100)
+            .sort((a, b) => a.distance - b.distance);
 
-        console.log('\nLojas em um raio de 100 km:');
-        stores.forEach(store => {
-            const distance = calculateDistance(lat, lng, store.lat, store.lng);
-            if (distance <= 100) {
-                console.log(`${store.name} está a ${distance.toFixed(2)} km de distância.`);
-            }
-        });
-
+        if (nearby.length === 0) {
+            logger.info("Nenhuma loja encontrada no raio de 100km.");
+        } else {
+            logger.info('Lojas em um raio de 100 km:');
+            nearby.forEach(store => {
+                logger.info(`${store.name} está a ${store.distance.toFixed(2)} km de distância.`);
+                logger.info(`Endereço: ${store.rua}, ${store.numero}, ${store.cidade} - ${store.estado}`);
+            });
+        }
     } catch (error) {
-        console.log("Erro:", error);
+        logger.error("Erro:", error);
     }
 }
 
-async function searchCoords(city, state) {
-    const url = `https://nominatim.openstreetmap.org/search?city=${city}&state=${state}&country=Brazil&format=json`;
-
-    const res = await fetch(url)
-    const data = await res.json()
-    console.log(data[0])
-    return {
-        lat: data[0].lat,
-        lng: data[0].lon
-    }
-}
-
+//consulta
 const cep = '01001000';
 nearbyStores(cep);

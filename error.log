@@ -1,0 +1,1 @@
+{"level":"error","message":"Erro: stores.map is not a function","stack":"TypeError: stores.map is not a function\n    at nearbyStores (C:\\Users\\Paula Ribeiro\\Desktop\\Teste Compass\\Index.js:77:14)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)"}
