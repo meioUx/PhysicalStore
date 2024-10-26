@@ -1,8 +1,8 @@
-// index.js
+
 const winston = require('winston');
 const stores = require('./stores'); 
 
-//  Winston
+
 const logger = winston.createLogger({
     level: 'info',
     format: winston.format.json(),
