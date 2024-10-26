@@ -15,3 +15,8 @@
 {"level":"info","message":"CEP: 01001-000 | Local: Praça da Sé, São Paulo - SP"}
 {"level":"info","message":"Coordenadas do CEP: Latitude -23.5506507, Longitude -46.6333824"}
 {"level":"info","message":"Nenhuma loja encontrada no raio de 100km."}
+{"bairro":"Sé","cep":"01001-000","complemento":"lado ímpar","ddd":"11","estado":"São Paulo","gia":"1004","ibge":"3550308","level":"info","localidade":"São Paulo","logradouro":"Praça da Sé","message":"Dados obtidos do CEP: 01001000","regiao":"Sudeste","siafi":"7107","uf":"SP","unidade":""}
+{"level":"info","message":"Coordenadas encontradas para São Paulo, SP: -23.5506507, -46.6333824"}
+{"level":"info","message":"CEP: 01001-000 | Local: Praça da Sé, São Paulo - SP"}
+{"level":"info","message":"Coordenadas do CEP: Latitude -23.5506507, Longitude -46.6333824"}
+{"level":"info","message":"Nenhuma loja encontrada no raio de 100km."}
