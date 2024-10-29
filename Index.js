@@ -1,6 +1,6 @@
 
 const winston = require('winston');
-const stores = require('./stores'); 
+const stores = require('./stores');
 
 
 const logger = winston.createLogger({
@@ -64,12 +64,14 @@ async function searchCoords(city, state) {
 }
 
 // Localizar as lojas perto
-async function nearbyStores(cep) {
+export async function nearbyStores(cep) {
     try {
         const dataCEP = await getDataByCEP(cep);
         const { logradouro, localidade, uf, cep: findedCEP } = dataCEP;
         const { lat, lng } = await searchCoords(localidade, uf);
-        
+
+        return dataCEP
+
         logger.info(`CEP: ${findedCEP} | Local: ${logradouro}, ${localidade} - ${uf}`);
         logger.info(`Coordenadas do CEP: Latitude ${lat}, Longitude ${lng}`);
 

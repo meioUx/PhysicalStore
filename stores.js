@@ -44,7 +44,7 @@ const stores = [
     { name: "Loja BA6", lat: -10.9443, lng: -39.0702, rua: "Rua Marechal", numero: 133, estado: "Bahia", cidade: "Juazeiro" },
     { name: "Loja BA7", lat: -13.5325, lng: -40.5534, rua: "Rua de Cima", numero: 134, estado: "Bahia", cidade: "Jequié" },
 
-    
+
 ];
 
 module.exports = stores; 
