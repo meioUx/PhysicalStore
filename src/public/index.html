@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Imaginarium - Localização de Lojas</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
+        /* Estilos gerais */
         body {
             font-family: Arial, sans-serif;
             background-color: #f5f5f5;
@@ -26,7 +28,6 @@
         .header img {
             height: 300px;
             margin-bottom: -201px;
-            /* Diminui o espaço entre o logo e a barra de procura */
         }
 
         .search-bar {
@@ -63,7 +64,7 @@
             text-decoration: none;
         }
 
-        /* Lista de lojas */
+        /* Lista de lojas e mapa */
         .container {
             display: flex;
             padding: 20px;
@@ -94,7 +95,7 @@
 
         .store .buttons {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             margin-top: 10px;
         }
 
@@ -109,53 +110,68 @@
             background-color: #000000;
         }
 
-        .store .buy {
-            background-color: #0070c0;
-        }
-
         /* Mapa */
-        .map {
+        #map {
             width: 60%;
             height: 400px;
             background-color: #ddd;
             border-radius: 8px;
         }
-
-        /* Botões de estado */
-        .state-buttons {
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .state-buttons button {
-            background-color: #ccc;
-            color: #333;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            margin: 5px;
-            cursor: pointer;
-        }
     </style>
 
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
+        let map;
+        let marker;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            map = L.map('map').setView([-15.8267, -47.9218], 5); // Coordenadas iniciais do Brasil
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+        });
+
         function renderStores(data) {
             const container = document.getElementById('store-list');
             container.innerHTML = '';
             const titleElement = document.createElement('h2');
             titleElement.textContent = 'Confira as Imaginariuns mais próximas';
             container.appendChild(titleElement);
-            const { location, list } = data
+
+            const { location, list } = data;
             const locationSection = document.getElementById('location');
             locationSection.innerHTML = '';
-            if (!!data.error) {
+
+            if (data.error) {
                 const errorParagraph = document.createElement('p');
-                errorParagraph.innerHTML = data.error
-                container.appendChild(errorParagraph)
+                errorParagraph.innerHTML = data.error;
+
+                const onlineStoreButton = document.createElement('button');
+                onlineStoreButton.textContent = "Loja online";
+                onlineStoreButton.style.marginTop = "10px";
+                onlineStoreButton.style.padding = "8px 16px";
+                onlineStoreButton.style.backgroundColor = "#0070c0";
+                onlineStoreButton.style.color = "#fff";
+                onlineStoreButton.style.border = "none";
+                onlineStoreButton.style.borderRadius = "4px";
+                onlineStoreButton.style.cursor = "pointer";
+                onlineStoreButton.onclick = () => {
+                    window.location.href = "https://loja.imaginarium.com.br/";
+                };
+                const additionalMessage = document.createElement('p');
+                additionalMessage.innerHTML = " Não se preocupe! Encontre tudo que procura na nossa loja Online";
+                additionalMessage.style.color = "black";
+
+                container.appendChild(errorParagraph);
+
+                container.appendChild(additionalMessage);
+
+                container.appendChild(onlineStoreButton);
             } else {
                 const locationParagraph = document.createElement('p');
                 locationParagraph.innerHTML = `Você está vendo lojas perto de: <strong>${location.localidade} - ${location.uf}, ${location.cep}, Brasil</strong>`;
-
                 locationSection.appendChild(locationParagraph);
 
                 list.forEach(store => {
@@ -167,7 +183,7 @@
                     storeDiv.appendChild(nameElement);
 
                     const distanceElement = document.createElement('p');
-                    distanceElement.textContent = `está a ${store.distance.toFixed(2)} km de distância`;
+                    distanceElement.textContent = `Está a ${store.distance.toFixed(2)} km de distância`;
                     storeDiv.appendChild(distanceElement);
 
                     const addressElement = document.createElement('p');
@@ -178,19 +194,16 @@
                     buttonsDiv.classList.add('buttons');
 
                     const mapButton = document.createElement('a');
-                    mapButton.href = `https://www.google.com/maps/search/?api=1&query=${store.lat},${store.lng}`;
+                    mapButton.href = "#";
                     mapButton.classList.add('view-more');
                     mapButton.textContent = 'Ver no mapa';
+                    mapButton.onclick = () => {
+                        handleGoToMarker(store.lat, store.lng, store.name);
+                        return false; // Evita recarregar a página
+                    };
                     buttonsDiv.appendChild(mapButton);
 
-                    const buyButton = document.createElement('a');
-                    buyButton.onclick = `handleGoToMarker(${store.lat},${store.lng})`;
-                    buyButton.classList.add('buy');
-                    buyButton.textContent = 'Comprar';
-                    buttonsDiv.appendChild(buyButton);
-
                     storeDiv.appendChild(buttonsDiv);
-
                     container.appendChild(storeDiv);
                 });
             }
@@ -200,40 +213,44 @@
             if (event.key === 'Enter') {
                 const response = await fetch(`http://localhost:3000/cep/${input.value}`);
                 const data = await response.json();
-                console.log(data)
-                renderStores(data)
+                console.log(data);
+                renderStores(data);
             }
         }
 
         async function handleGetCep(input) {
             const response = await fetch(`http://localhost:3000/cep/${input}`);
             const data = await response.json();
-            console.log(data)
-            renderStores(data)
+            console.log(data);
+            renderStores(data);
+        }
+
+        function handleGoToMarker(lat, lng, name) {
+            map.setView([lat, lng], 15);
+
+            // Remove marcador anterior, se existir
+            if (marker) {
+                marker.remove();
+            }
+
+            // Adiciona novo marcador no ponto especificado
+            marker = L.marker([lat, lng]).addTo(map);
+            marker.bindPopup(`<strong>${name}</strong>`).openPopup();
         }
     </script>
 </head>
 
 <body>
-
     <header class="header">
         <img src="./img/logo.png" alt="Logo da Imaginarium">
         <div class="search-bar">
             <input type="text" placeholder="Digite aqui o CEP ou endereço desejado" onkeydown="search(this)">
         </div>
         <p class="search-message">Encontre a Imaginarium mais próxima de você</p>
-
     </header>
 
-    <section class="state-buttons">
-        <button onclick="handleGetCep('01000000')">SP</button>
-        <button onclick="handleGetCep('20000000')">RJ</button>
-        <button onclick="handleGetCep('30100000')">MG</button>
-        <button onclick="handleGetCep('90000000')">RS</button>
-        <button onclick="handleGetCep('80000000')">PR</button>
-    </section>
-
     <section class="location" id="location">
+        <!-- Localização da busca aparecerá aqui -->
     </section>
 
     <div class="container">
@@ -241,9 +258,10 @@
             <h2>Confira as Imaginariuns mais próximas</h2>
         </div>
 
-        <div class="map">
-            <p style="text-align:center; padding-top:180px; color:#888;">Mapa da localização</p>
+        <div id="map" class="map">
+            <!-- Mapa aparecerá aqui -->
         </div>
+
     </div>
 </body>
 

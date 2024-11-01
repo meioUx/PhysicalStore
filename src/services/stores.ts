@@ -3,53 +3,54 @@ import { IStore } from "../interfaces/store";
 export const stores: IStore[] = [
     {
         name: "IMAGINARIUM PATO BRANCO",
-        lat: -26.2205,
-        lng: -52.6744,
+        lat: -26.22471536350089,
+        lng:  -52.67095226330143,
         rua: "Rua Jaciretã",
         numero: 4,
         estado: "Paraná",
         cidade: "Pato Branco"
+        
     },
     {
         name: "GUEDES SHOPPING",
-        lat: -7.0226,
-        lng: -37.2764,
+        lat: -7.028032873939457, 
+        lng: -37.281554642330235,
         rua: "R Doutor Pedro Firmino",
         numero: 470,
         estado: "Paraíba",
         cidade: "Patos"
     },
     {
-        "name": "SHOPPING ESTACAO CUIABA",
-        "lat": -15.601,
-        "lng": -56.0974,
-        "rua": "Av Miguel Sutil",
-        "numero": 9300,
-        "estado": "Mato Grosso",
-        "cidade": "Cuiabá"
+        name: "SHOPPING ESTACAO CUIABA",
+        lat: -15.589943184771743,  
+        lng: -56.120676700000004,
+        rua: "Av Miguel Sutil",
+        numero: 9300,
+        estado: "Mato Grosso",
+        cidade: "Cuiabá"
     },
     {
-        "name": "LOJA DE RUA",
-        "lat": -19.6191,
-        "lng": -43.2264,
-        "rua": "R Salvino Pascoal Patrocinio",
-        "numero": 28,
-        "estado": "Minas Gerais",
-        "cidade": "Itabira"
+        name: "LOJA DE RUA",
+        lat: -19.625844614085192,
+        lng: -43.2271295714054,
+        rua: "R Salvino Pascoal Patrocinio",
+        numero: 28,
+        estado: "Minas Gerais",
+        cidade: "Itabira"
     },
     {
-        "name": "SHOPPING BOURBON POMPEIA",
-        "lat": -23.5273,
-        "lng": -46.6786,
-        "rua": "R Turiassu",
-        "numero": 2100,
-        "estado": "São Paulo",
-        "cidade": "São Paulo"
+        name: "SHOPPING BOURBON POMPEIA",
+        lat: -23.52611599644919, 
+        lng: -46.68128324425685,
+        rua: "R Turiassu",
+        numero: 2100,
+        estado: "São Paulo",
+        cidade: "São Paulo"
     },
     {
         "name": "MANAÍRA SHOPPING",
-        "lat": -7.1151,
-        "lng": -34.8267,
+        "lat": -7.098002925741982, 
+        "lng": -34.844908399412965,
         "rua": "Av Flavio Ribeiro Coutinho",
         "numero": 220,
         "estado": "Paraíba",

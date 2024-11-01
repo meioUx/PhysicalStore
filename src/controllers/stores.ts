@@ -21,7 +21,7 @@ export async function nearbyStores(cep: string) {
         })).filter(store => store.distance <= 100).sort((a, b) => a.distance - b.distance) || []
 
         if (nearby.length === 0) {
-            return ({list: [], error: "Nenhuma loja encontrada no raio de 100km." });
+            return ({list: [], error: "Ops! Nenhuma loja encontrada no raio de 100km." });
         } else {
             console.log('Lojas em um raio de 100 km:');
             const listStores: IStore[] = []
