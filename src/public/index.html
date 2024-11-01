@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imaginarium - Localização de Lojas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Cabeçalho */
+        .header {
+            background-color: #00080a;
+            color: white;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header img {
+            height: 300px;
+            margin-bottom: -201px;
+            /* Diminui o espaço entre o logo e a barra de procura */
+        }
+
+        .search-bar {
+            margin-bottom: 10px;
+        }
+
+        .search-bar input[type="text"] {
+            padding: 8px;
+            width: 300px;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .search-message {
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            margin-top: 10px;
+            font-family: 'Arial', sans-serif;
+        }
+
+        /* Localização */
+        .location {
+            background-color: #f5f5f5;
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .location a {
+            color: #0051e6;
+            text-decoration: none;
+        }
+
+        /* Lista de lojas */
+        .container {
+            display: flex;
+            padding: 20px;
+        }
+
+        .store-list {
+            width: 40%;
+            margin-right: 20px;
+        }
+
+        .store {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .store h3 {
+            margin: 0;
+            color: #000000;
+        }
+
+        .store p {
+            font-size: 12px;
+            color: #555;
+        }
+
+        .store .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .store .buttons a {
+            text-decoration: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+
+        .store .view-more {
+            background-color: #000000;
+        }
+
+        .store .buy {
+            background-color: #0070c0;
+        }
+
+        /* Mapa */
+        .map {
+            width: 60%;
+            height: 400px;
+            background-color: #ddd;
+            border-radius: 8px;
+        }
+
+        /* Botões de estado */
+        .state-buttons {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .state-buttons button {
+            background-color: #ccc;
+            color: #333;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
+
+    <script>
+        function renderStores(data) {
+            const container = document.getElementById('store-list');
+            container.innerHTML = '';
+            const titleElement = document.createElement('h2');
+            titleElement.textContent = 'Confira as Imaginariuns mais próximas';
+            container.appendChild(titleElement);
+            const { location, list } = data
+            const locationSection = document.getElementById('location');
+            locationSection.innerHTML = '';
+            if (!!data.error) {
+                const errorParagraph = document.createElement('p');
+                errorParagraph.innerHTML = data.error
+                container.appendChild(errorParagraph)
+            } else {
+                const locationParagraph = document.createElement('p');
+                locationParagraph.innerHTML = `Você está vendo lojas perto de: <strong>${location.localidade} - ${location.uf}, ${location.cep}, Brasil</strong>`;
+
+                locationSection.appendChild(locationParagraph);
+
+                list.forEach(store => {
+                    const storeDiv = document.createElement('div');
+                    storeDiv.classList.add('store');
+
+                    const nameElement = document.createElement('h3');
+                    nameElement.textContent = store.name;
+                    storeDiv.appendChild(nameElement);
+
+                    const distanceElement = document.createElement('p');
+                    distanceElement.textContent = `está a ${store.distance.toFixed(2)} km de distância`;
+                    storeDiv.appendChild(distanceElement);
+
+                    const addressElement = document.createElement('p');
+                    addressElement.textContent = `${store.rua}, ${store.numero}, ${store.cidade} - ${store.estado}`;
+                    storeDiv.appendChild(addressElement);
+
+                    const buttonsDiv = document.createElement('div');
+                    buttonsDiv.classList.add('buttons');
+
+                    const mapButton = document.createElement('a');
+                    mapButton.href = `https://www.google.com/maps/search/?api=1&query=${store.lat},${store.lng}`;
+                    mapButton.classList.add('view-more');
+                    mapButton.textContent = 'Ver no mapa';
+                    buttonsDiv.appendChild(mapButton);
+
+                    const buyButton = document.createElement('a');
+                    buyButton.onclick = `handleGoToMarker(${store.lat},${store.lng})`;
+                    buyButton.classList.add('buy');
+                    buyButton.textContent = 'Comprar';
+                    buttonsDiv.appendChild(buyButton);
+
+                    storeDiv.appendChild(buttonsDiv);
+
+                    container.appendChild(storeDiv);
+                });
+            }
+        }
+
+        async function search(input) {
+            if (event.key === 'Enter') {
+                const response = await fetch(`http://localhost:3000/cep/${input.value}`);
+                const data = await response.json();
+                console.log(data)
+                renderStores(data)
+            }
+        }
+
+        async function handleGetCep(input) {
+            const response = await fetch(`http://localhost:3000/cep/${input}`);
+            const data = await response.json();
+            console.log(data)
+            renderStores(data)
+        }
+    </script>
+</head>
+
+<body>
+
+    <header class="header">
+        <img src="./img/logo.png" alt="Logo da Imaginarium">
+        <div class="search-bar">
+            <input type="text" placeholder="Digite aqui o CEP ou endereço desejado" onkeydown="search(this)">
+        </div>
+        <p class="search-message">Encontre a Imaginarium mais próxima de você</p>
+
+    </header>
+
+    <section class="state-buttons">
+        <button onclick="handleGetCep('01000000')">SP</button>
+        <button onclick="handleGetCep('20000000')">RJ</button>
+        <button onclick="handleGetCep('30100000')">MG</button>
+        <button onclick="handleGetCep('90000000')">RS</button>
+        <button onclick="handleGetCep('80000000')">PR</button>
+    </section>
+
+    <section class="location" id="location">
+    </section>
+
+    <div class="container">
+        <div class="store-list" id="store-list">
+            <h2>Confira as Imaginariuns mais próximas</h2>
+        </div>
+
+        <div class="map">
+            <p style="text-align:center; padding-top:180px; color:#888;">Mapa da localização</p>
+        </div>
+    </div>
+</body>
+
+</html>
